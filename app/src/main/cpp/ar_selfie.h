@@ -85,7 +85,7 @@ private:
 
     void UpdateAnchorColor(ColoredAnchor* colored_anchor);
 
-    void ChangeCameraConfig(int32_t option);
+    void ChangeCameraDir(int32_t option);
 };
 
 

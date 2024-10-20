@@ -91,33 +91,21 @@ namespace ar_selfie {
         const ArStatus status = ArSession_resume(ar_session_);
         CHECKANDTHROW(status == AR_SUCCESS, env, "Failed to resume AR session.");
 
-        ChangeCameraConfig(AR_CAMERA_CONFIG_FACING_DIRECTION_FRONT);
+        ChangeCameraDir(AR_CAMERA_CONFIG_FACING_DIRECTION_FRONT);
     }
 
-    void ArSelfie::ChangeCameraConfig(int32_t option) {
+    void ArSelfie::ChangeCameraDir(int32_t option) {
         std::lock_guard<std::mutex> lock(frame_image_in_use_matrix);
-        ArCameraConfigList *all_camera_config = nullptr;
         ArCameraConfigFilter* camera_config_filter = nullptr;
         ArCameraConfig *cameraConfig;
         int32_t outsize;
 
         ArSession_pause(ar_session_);
-        ArCameraConfigList_create(ar_session_,&all_camera_config);
         ArCameraConfigFilter_create(ar_session_,&camera_config_filter);
         ArCameraConfigFilter_setFacingDirection(ar_session_, camera_config_filter,
                                                 AR_CAMERA_CONFIG_FACING_DIRECTION_FRONT);
-//        if(option ==  AR_CAMERA_CONFIG_FACING_DIRECTION_FRONT)
-//                ArCameraConfigFilter_setFacingDirection(ar_session_, camera_config_filter,
-//                                                        AR_CAMERA_CONFIG_FACING_DIRECTION_FRONT);
-//
-//        if(option == AR_CAMERA_CONFIG_DEPTH_SENSOR_USAGE_REQUIRE_AND_USE)
-//                ArCameraConfigFilter_setDepthSensorUsage(ar_session_,camera_config_filter,
-//                                                         AR_CAMERA_CONFIG_DEPTH_SENSOR_USAGE_REQUIRE_AND_USE);
-//
-//        if(option == AR_CAMERA_CONFIG_STEREO_CAMERA_USAGE_REQUIRE_AND_USE)
-//                ArCameraConfigFilter_setStereoCameraUsage(ar_session_,camera_config_filter,
-//                                                          AR_CAMERA_CONFIG_STEREO_CAMERA_USAGE_REQUIRE_AND_USE);
-        ArCameraConfigList  *configlist;
+
+        ArCameraConfigList  *configlist = nullptr;
         ArCameraConfigList_create(ar_session_,&configlist);
         ArSession_getSupportedCameraConfigsWithFilter(ar_session_,camera_config_filter,configlist);
 
@@ -129,7 +117,7 @@ namespace ar_selfie {
 
         ArSession_resume(ar_session_);
         ArCameraConfigList_destroy(configlist);
-       // ArCameraConfigFilter_destroy(camera_config_filter);
+        ArCameraConfigFilter_destroy(camera_config_filter);
         ArCameraConfig_destroy(cameraConfig);
 
     }
