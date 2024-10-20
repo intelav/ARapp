@@ -1,0 +1,87 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+def arcore_libpath = "${projectDir}/build/arcore-native"
+
+configurations { natives }
+
+android {
+    namespace 'com.svargames.arselfie'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.svargames.arselfie"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags '-std=c++17' , "-Wall"
+                arguments "-DANDROID_STL=c++_static",
+                        "-DARCORE_LIBPATH=${arcore_libpath}/jni",
+                        "-DARCORE_INCLUDE=${project.rootDir}/../libraries/include",
+                        "-DGLM_INCLUDE=${project.rootDir}/../third_party/glm"
+            }
+        }
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a", "x86","x86_64"
+        }
+    }
+
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    implementation libs.core
+    natives libs.core
+}
+// Extracts the shared libraries from aars in the natives configuration.
+// This is done so that NDK builds can access these libraries.
+task extractNativeLibraries() {
+    // Always extract, this insures the native libs are updated if the version changes.
+    outputs.upToDateWhen { false }
+    doFirst {
+        configurations.natives.files.each { f ->
+            copy {
+                from zipTree(f)
+                into arcore_libpath
+                include "jni/**/*"
+            }
+        }
+    }
+}
+
+tasks.whenTaskAdded {
+    task -> if ((task.name.contains("external") || task.name.contains("CMake")) && !task.name.contains("Clean")) {
+        task.dependsOn(extractNativeLibraries)
+    }
+}
