@@ -1,2 +1,2 @@
-To build this app successfuly , run ./app.sh in an empty directory as below
-./app.sh `pwd`
+To build this app successfuly , run ./arapp.sh in an empty directory as below
+./arapp.sh "`pwd`"
